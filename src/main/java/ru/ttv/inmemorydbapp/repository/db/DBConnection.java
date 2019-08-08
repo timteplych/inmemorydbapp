@@ -1,4 +1,4 @@
-package ru.ttv.inmemorydbapp.service.db;
+package ru.ttv.inmemorydbapp.repository.db;
 
 import ru.ttv.inmemorydbapp.api.db.DBConnectionAPI;
 

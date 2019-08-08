@@ -1,4 +1,4 @@
-package ru.ttv.inmemorydbapp.service.db;
+package ru.ttv.inmemorydbapp.repository.db;
 
 import ru.ttv.inmemorydbapp.api.db.DBProcessingAPI;
 import ru.ttv.inmemorydbapp.entity.Entity;
@@ -26,64 +26,19 @@ public class DBProcessing implements DBProcessingAPI {
     }
 
     @Override
-    public void executeCommand(String command, String entityType, String dataString) {
-        String[] params = dataString.split(";");
-        if(ApplicationService.PROJECT_ENTITY.equals(entityType) && ApplicationService.CREATE_COMMAND.equals(command)){
-            if(params.length >= 3){
-                Project project = new Project();
-                project.setTitle(params[0]);
-                project.setDescription(params[1]);
-                project.setOwner(params[2]);
-                if(addItem(project) == 1){
-                    System.out.println("added");
-                };
-            }else{
-                System.out.println("Incorrect params quantity");
-                return;
-            }
-        }else if(ApplicationService.TASK_ENTITY.equals(entityType)&& ApplicationService.CREATE_COMMAND.equals(command)){
-            if(params.length >= 1){
-                Task task = new Task();
-                task.setTitle(params[0]);
-                if(addItem(task) == 1){
-                    System.out.println("added");
-                };
-            }
-        }
-
-        if(ApplicationService.READ_COMMAND.equals(command)){
-            System.out.println(getItem(entityType, params[0]));
-        }
-
-        if(ApplicationService.DELETE_COMMAND.equals(command)){
-            if(deleteItem(entityType, params[0]) == 1){
-                System.out.println("deleted");
-            };
-        }
+    public Entity getItem(Entity entity) {
+        return null;
     }
 
     @Override
-    public String getItem(String entityType, String param) {
-        String resultString = "";
-        try {
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(getSelectQuery(entityType, param));
-            if (resultSet.next()){
-                ResultSetMetaData rsmd = resultSet.getMetaData();
-                int columnCount = rsmd.getColumnCount();
-                for (int i = 1; i <= columnCount; i++ ) {
-                    String colname = rsmd.getColumnName(i);
-                     resultString += colname + ":"+resultSet.getString(colname)+" ";
-                }
-            }else{
-                return "not found";
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return resultString;
+    public int deleteItem(Entity entity) {
+        return 0;
     }
 
+    @Override
+    public int updateItem(Entity entity) {
+        return 0;
+    }
 
     @Override
     public int addItem(Entity entity) {
@@ -97,18 +52,6 @@ public class DBProcessing implements DBProcessingAPI {
         return 0;
     }
 
-
-    @Override
-    public int deleteItem(String entityType, String param) {
-        try {
-            Statement statement = connection.createStatement();
-            statement.executeUpdate(getDeleteQuery(entityType, param));
-            return 1;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
 
     private String getDeleteQuery(String entityType, String param) {
         String sql = "";

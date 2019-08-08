@@ -1,9 +1,9 @@
 package ru.ttv.inmemorydbapp.system;
 
-import ru.ttv.inmemorydbapp.api.db.DBConnectionAPI;
-import ru.ttv.inmemorydbapp.api.db.DBProcessingAPI;
-import ru.ttv.inmemorydbapp.service.db.DBConnection;
-import ru.ttv.inmemorydbapp.service.db.DBProcessing;
+import ru.ttv.inmemorydbapp.api.db.ProcessingAPI;
+import ru.ttv.inmemorydbapp.command.*;
+import ru.ttv.inmemorydbapp.repository.map.MapRepository;
+import ru.ttv.inmemorydbapp.service.CommandService;
 
 import java.util.Scanner;
 
@@ -23,43 +23,48 @@ public class ApplicationService {
 
     public void start(){
         Scanner scanner = new Scanner(System.in);
-        DBConnectionAPI dbConnection = new DBConnection();
-        dbConnection.init();
-        DBProcessingAPI dbProcessing = new DBProcessing();
-        dbProcessing.setConnection(dbConnection.getConn());
-        dbProcessing.init();
-        String currentCommand = "";
-        String currentEntityType = "";
-        String currentDataString = "";
+        CommandService commandService = new CommandService();
+        ProcessingAPI repository = new MapRepository();
+        repository.init();
+        AbstractCommand command = null;
         showCommands();
         while (scanner.hasNext()){
             String userString = scanner.next();
             if (END_KEYWORD.equals(userString)) break;
-            if(currentCommand.isEmpty()){
+            if(command == null){
                 if(CREATE_COMMAND.equals(userString) || READ_COMMAND.equals(userString) || UPDATE_COMMAND.equals(userString) || DELETE_COMMAND.equals(userString)){
-                    currentCommand = userString;
+                    if(CREATE_COMMAND.equals(userString)){
+                        command = new CreateCommand();
+                    }else if (READ_COMMAND.equals(userString)){
+                        command = new ReadCommand();
+                    }else if(UPDATE_COMMAND.equals(userString)){
+                        command = new UpdateCommand();
+                    }else if (DELETE_COMMAND.equals(userString)){
+                        command = new DeleteCommand();
+                    }
                     System.out.println("Enter entity type - '"+PROJECT_ENTITY+"' or '"+TASK_ENTITY+"'");
                 }else{
                     System.out.println("Incorrect command!");
                 }
-            }else if(currentEntityType.isEmpty()){
+            }else if(command.getRepository() == null){
                 if(PROJECT_ENTITY.equals(userString) || TASK_ENTITY.equals(userString)){
-                    currentEntityType = userString;
+                    if(PROJECT_ENTITY.equals(userString)){
+                        command.setRepository(repository);
+                    }else if(TASK_ENTITY.equals(userString)){
+                        command.setRepository(repository);
+                    }
+                    commandService.setEntityType(userString);
                     System.out.println("Enter parameter string with ; delimiter");
                 }else{
                     System.out.println("Incorrect entity type!");
                 }
             }else{
-                currentDataString = userString;
-                dbProcessing.executeCommand(currentCommand, currentEntityType, currentDataString);
-                currentCommand = "";
-                currentEntityType = "";
-                currentDataString = "";
+                commandService.setParams(userString.split(";"));
+                commandService.execute(command);
+                command = null;
                 showCommands();
             }
         }
-
-        dbConnection.close();
         scanner.close();
     }
 
